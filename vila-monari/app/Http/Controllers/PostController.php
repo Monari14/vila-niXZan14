@@ -21,8 +21,21 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        $image_path = null;
+        if($request->file('image')) {
+            $image_path = $request->file('image')->store('images');
+        }
+
         $post = new Post();
-        $post->content = $request->content;
+        if(! empty($request->content)) {
+            $post->content = $request->content;
+        }
+        if(! empty($request->username)) {
+            $post->username = $request->username;
+        }
+        if(! empty($image_path)) {
+            $post->image = $image_path;
+        }
         $post->save();
         return $post;
     }

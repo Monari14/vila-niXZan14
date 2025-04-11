@@ -4,7 +4,8 @@ namespace Tests\Feature\API;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Post;
 use Tests\TestCase;
-
+use Storage;
+use Illuminate\Http\UploadedFile;
 class PostTest extends TestCase
 {
     use RefreshDatabase;
@@ -41,22 +42,7 @@ class PostTest extends TestCase
         $response->assertStatus(404);
         $response->assertJson([]);
     }
-    public function test_create_post_through_api(): void
-    {
-        $requestBody = [
-            'content' => "",
-        ];
-        $response = $this->post('/api/posts', $requestBody);
-        $response->assertStatus(500);
-        $responseBody = $response->json();
-        $this->assertIsInt($responseBody['id']);
-        $response->assertSimilarJson([
-            'id'         => $responseBody['id'],
-            'content'    => $requestBody['content'],
-            'created_at' => $responseBody['created_at'],
-            'updated_at' => $responseBody['updated_at'],
-        ]);
-    }
+
     private function test_update_single_post(): void
     {
         $post = Post::factory()->create();
@@ -86,15 +72,58 @@ class PostTest extends TestCase
         ]);
     }
 
-    /*
-    public function test_create_post(): void
+    public function test_create_post_through_api(): void
+    {
+        $requestBody = [
+            'content' => 'Minha primeira mensagem escrita aqui.',
+        ];
+
+        $response = $this->post('/api/posts', $requestBody);
+        $response->assertStatus(201);
+
+        $responseBody = $response->json();
+
+        $this->assertIsInt($responseBody['id']);
+
+        $response->assertSimilarJson([
+            'id' => $responseBody['id'],
+            'content' => $requestBody['content'],
+            'created_at' => $responseBody['created_at'],
+            'updated_at' => $responseBody['updated_at'],
+        ]);
+
+        /**
+         * Must return the same POST above
+         */
+        $response = $this->get("/api/posts/{$responseBody['id']}");
+        $response->assertStatus(200);
+
+        $responseBody = $response->json();
+
+        $this->assertIsInt($responseBody['id']);
+        $this->assertLessThanOrEqual(32, strlen($responseBody['username']));
+        $this->assertLessThanOrEqual(255, strlen($responseBody['image']));
+
+        $response->assertExactJson([
+            'id' => $responseBody['id'],
+            'username' => 'anon',
+            'content' => $requestBody['content'],
+            'image' => null,
+            'created_at' => $responseBody['created_at'],
+            'updated_at' => $responseBody['updated_at'],
+        ]);
+
+        $this->assertDatabaseCount('posts', 1);
+        $this->post = (new Post())->forceFill($responseBody, true);
+    }
+
+    private function test_create_post(): void
     {
         $requestBody = [
             'content' => 'Post de feito por Felipe Eduardo Monari!',
         ];
 
         $response = $this->post('/api/posts', $requestBody);
-
         $response->assertStatus(201);
 
         $responseBody = $response->json();
@@ -120,8 +149,20 @@ class PostTest extends TestCase
             'updated_at' => $responseBody['updated_at'],
         ]);
     }
+    public function test_create_post_through_api_with_image(): void
+    {
+        $requestBody = [
+            'content' => 'Minha primeira mensagem escrita aqui.',
+            'image'   => UploadedFile::fake()->image('image.jpg'),
+        ];
 
-    public function test_update_single_post(): void
+        $response = $this->post('/api/posts', $requestBody);
+        $response->assertStatus(201);
+
+        Storage::disk('images')->assertExists($requestBody['image']->hashName());
+    }
+    /*
+    private function test_update_single_post(): void
     {
         $post = Post::factory()->create();
 
@@ -142,5 +183,4 @@ class PostTest extends TestCase
         ]);
     }
     */
-
 }
