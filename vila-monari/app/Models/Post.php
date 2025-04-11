@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Attribute;
+use Illuminate\Container\Attributes\Storage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,4 +22,11 @@ class Post extends Model
         'content',
         'image',
     ];
+
+    protected function image(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $image) => $image ? Storage::url($image) : null,
+        );
+    }
 }
