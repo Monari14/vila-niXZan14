@@ -20,15 +20,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $user = new User();
-        if (!empty($request->content)) {
-            $user->content = $request->content;
-        }
-        if (!empty($request->username)) {
-            $user->username = $request->username;
-        }
-        $user->save();
-        return $user;
+        $validated = $request->validate([
+            'name' => 'required|unique:posts|max:255',
+            'body' => 'required',
+
+        ]);
     }
 
     /**

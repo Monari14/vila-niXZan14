@@ -72,7 +72,7 @@ class PostTest extends TestCase
         ]);
     }
 
-    public function test_create_post_through_api(): void
+    private function test_create_post_through_api(): void
     {
         $requestBody = [
             'content' => 'Minha primeira mensagem escrita aqui.',
@@ -149,7 +149,7 @@ class PostTest extends TestCase
             'updated_at' => $responseBody['updated_at'],
         ]);
     }
-    public function test_create_post_through_api_with_image(): void
+    private function test_create_post_through_api_with_image(): void
     {
         $requestBody = [
             'content' => 'Minha primeira mensagem escrita aqui.',
