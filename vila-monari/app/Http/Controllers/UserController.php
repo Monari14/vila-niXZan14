@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -21,37 +22,35 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|unique:posts|max:255',
-            'body' => 'required',
-
+            'name' => 'required|unique:users|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
         ]);
+
+        return User::create($validated);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show()
     {
-        return User::findOrFail($id);
+        return Auth::user();
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        $user = User::findOrFail($id);
-        $user->content = $request->content;
-        $user->save();
-        return $user;
+        return Auth::user()->update($request->all());
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(): void
     {
-        $user = User::findOrFail($id);
-        $user->delete();
+        Auth::user()->delete();
     }
 }
