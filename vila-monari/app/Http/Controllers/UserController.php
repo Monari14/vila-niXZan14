@@ -35,7 +35,14 @@ class UserController extends Controller
      */
     public function show()
     {
-        return Auth::user();
+        $sim = Auth::user()->tokens()->all();
+
+        return response()->json([
+            'me' => $sim,
+            'mama' => 'fodase',
+        ]);
+
+        // return Auth::user();
     }
 
     /**

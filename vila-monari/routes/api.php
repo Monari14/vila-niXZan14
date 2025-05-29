@@ -5,6 +5,7 @@ use App\Http\Controllers\LogoutController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SessionController;
 
 Route::post('/login', LoginController::class);
 Route::post('/logout', LogoutController::class)->middleware('auth:sanctum');
@@ -16,3 +17,6 @@ Route::put('user', [UserController::class, 'update'])->middleware('auth:sanctum'
 Route::delete('user', [UserController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::apiResource('/posts', PostController::class);
+
+Route::get('/user/sessions', [SessionController::class, 'list'])->middleware('auth:sanctum');
+Route::delete('/user/sessions/{$id}', [SessionController::class, 'destroy'])->middleware('auth:sanctum');
