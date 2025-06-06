@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use Auth;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -21,9 +22,7 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-
         $image_path = null;
-
         if($request->file('image')) {
             $image_path = $request->file('image')->store('images');
         }
@@ -32,9 +31,9 @@ class PostController extends Controller
         if(! empty($request->content)) {
             $post->content = $request->content;
         }
-        if(! empty($request->username)) {
-            $post->username = $request->username;
-        }
+
+        $post->user_id = Auth::guard('sanctum')->id();
+
         if(! empty($image_path)) {
             $post->image = $image_path;
         }

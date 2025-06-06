@@ -12,7 +12,7 @@ class SessionTest extends TestCase
      * A basic feature test example.
      */
     #[Test]
-    public function list_all_sessions(): void
+    private function list_all_sessions(): void
     {
         $response = $this->get('/api/user/sessions');
         $response->assertStatus(200);
@@ -20,7 +20,7 @@ class SessionTest extends TestCase
     }
 
     #[Test]
-    public function delete_session(): void
+    private function delete_session(): void
     {
         $response = $this->delete('/api/user/sessions/1');
         $response->assertStatus(200);

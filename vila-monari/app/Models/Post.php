@@ -21,6 +21,7 @@ class Post extends Model
         'username',
         'content',
         'image',
+        'user_id',
     ];
 
     protected function image(): Attribute

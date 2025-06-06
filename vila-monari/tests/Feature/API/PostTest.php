@@ -117,10 +117,10 @@ class PostTest extends TestCase
         $this->post = (new Post())->forceFill($responseBody, true);
     }
 
-    private function test_create_post(): void
+    public function test_create_post(): void
     {
         $requestBody = [
-            'content' => 'Post de feito por Felipe Eduardo Monari!',
+            'content' => 'Post de feito aaaaaaaaa',
         ];
 
         $response = $this->post('/api/posts', $requestBody);
@@ -149,6 +149,7 @@ class PostTest extends TestCase
             'updated_at' => $responseBody['updated_at'],
         ]);
     }
+
     private function test_create_post_through_api_with_image(): void
     {
         $requestBody = [

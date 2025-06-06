@@ -19,14 +19,14 @@ class UserControllerTest extends TestCase
         $this->withoutMiddleware();
     }
     #[Test]
-    public function user_list(){
+    private function user_list(){
         $response = $this->get('/api/users');
         $response->assertStatus(200);
 
     }
 
     #[Test]
-    public function create_user_email_duplicated() {
+    private function create_user_email_duplicated() {
         User::factory()->withEmail('felipeemonari@gmail.com')->create();
 
         $userRequestBody = [
@@ -38,14 +38,14 @@ class UserControllerTest extends TestCase
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['email']);
     }
-    public function test_example(): void
+    private function test_example(): void
     {
         $response = $this->get('/');
 
         $response->assertStatus(200);
     }
     #[Test]
-    public function create_user(){
+    private function create_user(){
         User::create([
             'name' => 'Felipe Eduardo Monari',
             'email' => 'felipeemonari@gmail.com',

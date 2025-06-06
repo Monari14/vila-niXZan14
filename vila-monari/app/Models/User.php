@@ -46,4 +46,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    # Método de juntar o user com os posts
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
 }
