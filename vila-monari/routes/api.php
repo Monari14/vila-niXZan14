@@ -17,11 +17,15 @@ Route::prefix('/v1')->group(function () {
 
     # Rotas do usuário
     Route::get('/user', [UserController::class, 'show'])->middleware('auth:sanctum');
-    Route::put('/user{id}', [UserController::class, 'update'])->middleware('auth:sanctum');
-    Route::delete('/user{id}', [UserController::class, 'destroy'])->middleware('auth:sanctum');
+    Route::put('/user/{id}', [UserController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/user/{id}', [UserController::class, 'destroy'])->middleware('auth:sanctum');
 
-    # Rotas de posts --api
-    Route::apiResource('/posts', PostController::class);
+    Route::get('/posts', [PostController::class, 'index']);
+    Route::post('/posts', [PostController::class, 'store'])->middleware('auth:sanctum');
+    Route::get('/posts/{id}', [PostController::class, 'show'])->middleware('auth:sanctum');
+    Route::put('/posts/{id}', [PostController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/posts/{id}', [PostController::class, 'destroy'])->middleware('auth:sanctum');
+
 
     # Rotas de sessões do usuário
     Route::get('/user/sessions', [SessionController::class, 'list'])->middleware('auth:sanctum');
