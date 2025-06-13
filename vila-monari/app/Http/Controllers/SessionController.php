@@ -17,8 +17,8 @@ class SessionController extends Controller
         ])->latest('id')->get();
     }
 
-    public function destroy(Request $request, $id): void
+    public function destroy(Request $request, $id)
     {
-        Auth::user()->tokens()->where('id', $id)->delete();
+        return Auth::user()->tokens()->where('id', $id)->delete();
     }
 }

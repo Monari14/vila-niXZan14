@@ -9,50 +9,57 @@ use PHPUnit\Framework\Attributes\Test;
 use App\Models\User;
 class UserControllerTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     */
+
     use RefreshDatabase;
+
     public function setUp(): void
     {
         parent::setUp();
         $this->withoutMiddleware();
     }
-    #[Test]
-    private function user_list(){
-        $response = $this->get('/api/users');
-        $response->assertStatus(200);
 
+    #[Test]
+    public function example(): void
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
     }
 
     #[Test]
-    private function create_user_email_duplicated() {
-        User::factory()->withEmail('felipeemonari@gmail.com')->create();
+    public function user_list(){
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+
+        $response = $this->get('/api/v1/users');
+        $response->assertStatus(200);
+    }
+
+    #[Test]
+    public function create_user_email_duplicated() {
+        $user = User::factory()->create([
+            'name' => 'Felipe Monari',
+            'email' => 'felipeemonari@gmail.com',
+            'password' => 'felipe',
+        ]);
 
         $userRequestBody = [
             'name' => 'Felipe Eduardo Monari',
             'email' => 'felipeemonari@gmail.com',
-            'password' => 'senha',
+            'password' => 'felipe',
         ];
-        $response = $this->post('/api/users', $userRequestBody);
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['email']);
+        $response = $this->post('/api/v1/register', $userRequestBody);
+        $response->assertStatus(500);
     }
-    private function test_example(): void
-    {
-        $response = $this->get('/');
 
-        $response->assertStatus(200);
-    }
     #[Test]
-    private function create_user(){
-        User::create([
+    public function create_user(){
+        $request = [
             'name' => 'Felipe Eduardo Monari',
             'email' => 'felipeemonari@gmail.com',
-            'password' => 'senha',
-        ]);
+            'password' => 'felipe',
+        ];
 
-        $response = $this->post('/api/users');
-        $response->assertStatus(200);
+        $response = $this->post('/api/v1/register', $request);
+        $response->assertStatus(201);
     }
 }

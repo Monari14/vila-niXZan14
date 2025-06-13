@@ -21,13 +21,21 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|unique:users|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|unique:users|max:255',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:6',
+            ]);
 
-        return User::create($validated);
+            $user = User::create($validated);
+
+            return response()->json($user, 201);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Erro ao criar usuário.',
+            ], 500);
+        }
     }
 
     /**

@@ -16,6 +16,7 @@ Route::prefix('/v1')->group(function () {
     Route::post('/logout', LogoutController::class)->middleware('auth:sanctum');
 
     # Rotas do usuário
+    Route::get('/users', [UserController::class, 'index'])->middleware('auth:sanctum');
     Route::get('/user', [UserController::class, 'show'])->middleware('auth:sanctum');
     Route::put('/user/{id}', [UserController::class, 'update'])->middleware('auth:sanctum');
     Route::delete('/user/{id}', [UserController::class, 'destroy'])->middleware('auth:sanctum');
@@ -29,5 +30,5 @@ Route::prefix('/v1')->group(function () {
 
     # Rotas de sessões do usuário
     Route::get('/user/sessions', [SessionController::class, 'list'])->middleware('auth:sanctum');
-    Route::delete('/user/sessions/{$id}', [SessionController::class, 'destroy'])->middleware('auth:sanctum');
+    Route::delete('/user/sessions/{id}', [SessionController::class, 'destroy'])->middleware('auth:sanctum');
 });

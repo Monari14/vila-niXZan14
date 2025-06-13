@@ -2,27 +2,33 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
 class SessionTest extends TestCase
 {
     /**
      * A basic feature test example.
      */
     #[Test]
-    private function list_all_sessions(): void
+    public function list_all_sessions()
     {
-        $response = $this->get('/api/user/sessions');
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+        $response = $this->get('/api/v1/user/sessions');
         $response->assertStatus(200);
         $response->assertExactJson([]);
     }
 
     #[Test]
-    private function delete_session(): void
+    public function delete_session()
     {
-        $response = $this->delete('/api/user/sessions/1');
+        $user = User::factory()->create();
+        $token = $user->createToken("TOKEN")->accessToken;
+        $this->actingAs($user, 'sanctum');
+        $response = $this->delete("/api/v1/user/sessions/{$token->id}");
         $response->assertStatus(200);
         $response->assertJson([]);
     }
