@@ -6,79 +6,95 @@ use App\Models\Post;
 use Tests\TestCase;
 use Storage;
 use Illuminate\Http\UploadedFile;
+use PHPUnit\Framework\Attributes\Test;
+use App\Models\User;
+
 class PostTest extends TestCase
 {
     use RefreshDatabase;
-    private function test_list_zero_posts(): void
+
+    private Post $post;
+
+    #[Test]
+    public function create_post()
     {
-        $response = $this->get('/api/posts');
+        // O que o post espera receber
+        $requestBody = [
+            'content' => 'texto texto texto',
+            'image' => null,
+        ];
+
+        // Criando um usuário pois o post precisa de um usuário autenticado
+        $user = User::factory()->create();
+
+        // Isso basicamente já loga o user
+        $this->actingAs($user, 'sanctum');
+
+        // Faz a requisição para a rota
+        $response = $this->post('/api/v1/posts', $requestBody);
+
+        // Espera 201 como status
+        $response->assertStatus(201);
+
+    }
+
+    #[Test]
+    public function list_zero_posts()
+    {
+        $response = $this->get('/api/v1/posts');
+
         $response->assertStatus(200);
         $response->assertExactJson([]);
     }
 
-    private function test_list_n_posts(): void
+    #[Test]
+    public function list_n_posts()
     {
-        $post = Post::factory(10)->create();
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+        $n = 10;
+        Post::factory($n)->create();
 
-        $response = $this->get('/api/posts');
+        $response = $this->get('/api/v1/posts');
+
         $response->assertStatus(200);
-        $response->assertExactJson([9]);
+        $response->assertJsonCount($n);
     }
 
-    private function test_display_one_post(): void
+    #[Test]
+    public function display_one_post(): void
     {
-        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
 
-        $response = $this->get(`/api/posts/{$post->id}`);
+        $this->post = Post::factory()->create();
+
+        $response = $this->get("/api/v1/posts/{$this->post->id}");
+
         $response->assertStatus(200);
-        $response->assertExactJson($post->toArray());
+        $response->assertJson($this->post->toArray());
     }
 
-    private function test_get_wrong_post(): void
+    #[Test]
+    public function display_wrong_post(): void
     {
-        $this->test_display_one_post();
+        $this->display_one_post();
 
-        $response = $this->get('/api/posts/monari');
+        $response = $this->get("/api/v1/posts/SOME_WRONG_ID");
+
         $response->assertStatus(404);
-        $response->assertJson([]);
     }
 
-    private function test_update_single_post(): void
+    #[Test]
+    public function create_post_through_api(): void
     {
-        $post = Post::factory()->create();
-
-        $requestBody = [
-            'content' => 'Post de feito por Felipe Eduardo Monari!',
-        ];
-
-        $responseGet = $this->put("/api/posts/{$post->id}");
-
-        $responseGet->assertStatus(200);
-        $responseGetBody = $responseGet->assertJson();
-
-        $this->assertEquals(
-            $requestBody['content'],
-            $requestBody['content'],
-        );
-    }
-    private function test_delete_single_post(): void
-    {
-        $post = Post::factory()->create();
-
-        $response = $this->delete("/api/posts/{$post->id}");
-        $response->assertStatus(200);
-        $this->assertDatabaseMissing('posts', [
-            'id' => $post->id,
-        ]);
-    }
-
-    private function test_create_post_through_api(): void
-    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
         $requestBody = [
             'content' => 'Minha primeira mensagem escrita aqui.',
         ];
 
-        $response = $this->post('/api/posts', $requestBody);
+        $response = $this->post('/api/v1/posts', $requestBody);
         $response->assertStatus(201);
 
         $responseBody = $response->json();
@@ -87,6 +103,7 @@ class PostTest extends TestCase
 
         $response->assertSimilarJson([
             'id' => $responseBody['id'],
+            'user_id' => $user->id,
             'content' => $requestBody['content'],
             'created_at' => $responseBody['created_at'],
             'updated_at' => $responseBody['updated_at'],
@@ -95,93 +112,116 @@ class PostTest extends TestCase
         /**
          * Must return the same POST above
          */
-        $response = $this->get("/api/posts/{$responseBody['id']}");
+        $response = $this->get("/api/v1/posts/{$responseBody['id']}");
         $response->assertStatus(200);
 
         $responseBody = $response->json();
 
         $this->assertIsInt($responseBody['id']);
-        $this->assertLessThanOrEqual(32, strlen($responseBody['username']));
         $this->assertLessThanOrEqual(255, strlen($responseBody['image']));
 
         $response->assertExactJson([
             'id' => $responseBody['id'],
-            'username' => 'anon',
             'content' => $requestBody['content'],
+            'user_id' => $user->id,
             'image' => null,
             'created_at' => $responseBody['created_at'],
             'updated_at' => $responseBody['updated_at'],
         ]);
 
         $this->assertDatabaseCount('posts', 1);
+
         $this->post = (new Post())->forceFill($responseBody, true);
     }
 
-    public function test_create_post(): void
+    #[Test]
+    public function create_post_through_api_with_image(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
         $requestBody = [
-            'content' => 'Post de feito aaaaaaaaa',
+            'content' => 'Minha primeira mensagem com imagem anexada.',
+            'image' => UploadedFile::fake()->image('post.jpg', 256, 256),
         ];
 
-        $response = $this->post('/api/posts', $requestBody);
+        $response = $this->post('/api/v1/posts', $requestBody);
         $response->assertStatus(201);
 
-        $responseBody = $response->json();
-        $this->assertIsInt($responseBody['id']);
-        $this->assertLessThanOrEqual(32, strlen($responseBody['id']));
-        $this->assertLessThan(255, strlen($responseBody['image']));
-
-        $response->assertSimilarJson([
-            'id'         => $responseBody['id'],
-            'content'    => $requestBody['content'],
-            'created_at' => $responseBody['created_at'],
-            'updated_at' => $responseBody['updated_at'],
-        ]);
-
-        $response = $this->get("/api/posts/{$responseBody['id']}");
-        $response->assertStatus(200);
-        $response->assertExactJson([
-            'id'         => $responseBody['id'],
-            'username'   => 'anon',
-            'content'    => $requestBody['content'],
-            'image'      => null,
-            'created_at' => $responseBody['created_at'],
-            'updated_at' => $responseBody['updated_at'],
-        ]);
+        Storage::assertExists("images/{$requestBody['image']->hashName()}");
     }
 
-    private function test_create_post_through_api_with_image(): void
+    #[Test]
+    public function update_single_post(): void
     {
-        $requestBody = [
-            'content' => 'Minha primeira mensagem escrita aqui.',
-            'image'   => UploadedFile::fake()->image('image.jpg'),
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+        $this->post = Post::factory()->create();
+        $this->assertInstanceOf(Post::class, $this->post);
+
+        $responseOld = $this->get("/api/v1/posts/{$this->post->id}");
+        $responseOld->assertStatus(200);
+        $responseOldBody = $responseOld->json();
+
+        $requestUpdateBody = [
+            'content' => 'Uma mensagem atualizada.'
         ];
 
-        $response = $this->post('/api/posts', $requestBody);
-        $response->assertStatus(201);
+        $this->assertNotEquals(
+            $requestUpdateBody['content'],
+            $responseOldBody['content']
+        );
 
-        Storage::disk('images')->assertExists($requestBody['image']->hashName());
+        $responseWrongUpdate = $this->put("/api/v1/posts/SOME_WRONG_ID", $requestUpdateBody);
+        $responseWrongUpdate->assertStatus(404);
+
+        $responseNew = $this->put("/api/v1/posts/{$this->post->id}", $requestUpdateBody);
+        $responseNew->assertStatus(200);
+
+        $responseNewBody = $responseNew->json();
+        $this->assertEquals(
+            $requestUpdateBody['content'],
+            $responseNewBody['content']
+        );
     }
-    /*
-    private function test_update_single_post(): void
+
+    #[Test]
+    public function delete_single_post(): void
     {
-        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+        $this->post = Post::factory()->create();
 
-        $post = [
-            'content' => 'Post de feito por Felipe Eduardo Monari!',
-        ];
+        $responseWrongDeleted = $this->delete("/api/v1/posts/SOME_WRONG_ID");
+        $responseWrongDeleted->assertStatus(404);
 
-        $response = $this->put("/api/posts/{$post->id}", $requestBody);
+        $this->assertDatabaseCount($this->post->getTable(), 1);
 
-        $response->assertStatus(200);
-        $response->assertExactJson([
-            'id'         => $post->id,
-            'username'   => 'anon',
-            'content'    => $requestBody['content'],
-            'image'      => null,
-            'created_at' => $post->created_at,
-            'updated_at' => now(),
-        ]);
+        $responseDeleted = $this->delete("/api/v1/posts/{$this->post->id}");
+        $responseDeleted->assertStatus(200);
+
+        $responseAlreadyDeleted = $this->delete("/api/v1/posts/{$this->post->id}");
+        $responseAlreadyDeleted->assertStatus(404);
+
+        $this->assertDatabaseEmpty($this->post->getTable());
     }
-    */
+
+    #[Test]
+    public function create_post_through_api_and_delete_it(): void
+    {
+        $this->create_post_through_api();
+        $this->assertInstanceOf(Post::class, $this->post);
+
+        $responseWrongDeleted = $this->delete("/api/v1/posts/SOME_WRONG_ID");
+        $responseWrongDeleted->assertStatus(404);
+
+        $this->assertDatabaseCount($this->post->getTable(), 1);
+
+        $responseDeleted = $this->delete("/api/v1/posts/{$this->post->id}");
+        $responseDeleted->assertStatus(200);
+
+        $responseAlreadyDeleted = $this->delete("/api/v1/posts/{$this->post->id}");
+        $responseAlreadyDeleted->assertStatus(404);
+
+        $this->assertDatabaseEmpty($this->post->getTable());
+    }
 }
