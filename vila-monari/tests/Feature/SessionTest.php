@@ -9,9 +9,6 @@ use App\Models\User;
 
 class SessionTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     */
     #[Test]
     public function list_all_sessions()
     {
@@ -30,6 +27,6 @@ class SessionTest extends TestCase
         $this->actingAs($user, 'sanctum');
         $response = $this->delete("/api/v1/user/sessions/{$token->id}");
         $response->assertStatus(200);
-        $response->assertJson([]);
+        $response->assertNoContent();
     }
 }

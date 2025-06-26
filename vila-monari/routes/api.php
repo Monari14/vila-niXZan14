@@ -12,23 +12,26 @@ Route::prefix('/v1')->group(function () {
     Route::post('/login', LoginController::class);
     # Rota de registro
     Route::post('/register', [UserController::class, 'store']);
-    # ROta de logout
-    Route::post('/logout', LogoutController::class)->middleware('auth:sanctum');
 
-    # Rotas do usuário
-    Route::get('/users', [UserController::class, 'index'])->middleware('auth:sanctum');
-    Route::get('/user', [UserController::class, 'show'])->middleware('auth:sanctum');
-    Route::put('/user/{id}', [UserController::class, 'update'])->middleware('auth:sanctum');
-    Route::delete('/user/{id}', [UserController::class, 'destroy'])->middleware('auth:sanctum');
+    Route::middleware('auth:sanctum')->group(function () {
+        # Rota de logout
+        Route::post('/logout', LogoutController::class)->middleware('auth:sanctum');
 
-    Route::get('/posts', [PostController::class, 'index']);
-    Route::post('/posts', [PostController::class, 'store'])->middleware('auth:sanctum');
-    Route::get('/posts/{id}', [PostController::class, 'show'])->middleware('auth:sanctum');
-    Route::put('/posts/{id}', [PostController::class, 'update'])->middleware('auth:sanctum');
-    Route::delete('/posts/{id}', [PostController::class, 'destroy'])->middleware('auth:sanctum');
+        # Rotas do usuário
+        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/user', [UserController::class, 'show']);
+        Route::put('/user/{id}', [UserController::class, 'update']);
+        Route::delete('/user/{id}', [UserController::class, 'destroy']);
+
+        Route::get('/posts', [PostController::class, 'index']);
+        Route::post('/posts', [PostController::class, 'store']);
+        Route::get('/posts/{id}', [PostController::class, 'show']);
+        Route::put('/posts/{id}', [PostController::class, 'update']);
+        Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
 
-    # Rotas de sessões do usuário
-    Route::get('/user/sessions', [SessionController::class, 'list'])->middleware('auth:sanctum');
-    Route::delete('/user/sessions/{id}', [SessionController::class, 'destroy'])->middleware('auth:sanctum');
+        # Rotas de sessões do usuário
+        Route::get('/user/sessions', [SessionController::class, 'list']);
+        Route::delete('/user/sessions/{id}', [SessionController::class, 'destroy']);
+    });
 });
