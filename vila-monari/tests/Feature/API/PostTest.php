@@ -41,6 +41,8 @@ class PostTest extends TestCase
     #[Test]
     public function list_zero_posts()
     {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
         $response = $this->get('/api/v1/posts');
 
         $response->assertStatus(200);
