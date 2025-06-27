@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\CommentController;
 
 Route::prefix('/v1')->group(function () {
     # Rota de login
@@ -15,7 +16,7 @@ Route::prefix('/v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         # Rota de logout
-        Route::post('/logout', LogoutController::class)->middleware('auth:sanctum');
+        Route::post('/logout', LogoutController::class);
 
         # Rotas do usuário
         Route::get('/users', [UserController::class, 'index']);
@@ -29,6 +30,13 @@ Route::prefix('/v1')->group(function () {
         Route::put('/posts/{id}', [PostController::class, 'update']);
         Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
+        # comentarios
+        Route::get('/comments', [CommentController::class, 'index']);
+        Route::post('/comments/{id}', [CommentController::class, 'store']);
+        Route::get('/comments/{id}', [CommentController::class, 'show']);
+        Route::put('/comments/{id}', [CommentController::class, 'update']);
+        Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+        # votação (up ou down vote) em um comentário ou post
 
         # Rotas de sessões do usuário
         Route::get('/user/sessions', [SessionController::class, 'list']);

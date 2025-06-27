@@ -26,7 +26,6 @@ class SessionTest extends TestCase
         $token = $user->createToken("TOKEN")->accessToken;
         $this->actingAs($user, 'sanctum');
         $response = $this->delete("/api/v1/user/sessions/{$token->id}");
-        $response->assertStatus(200);
         $response->assertNoContent();
     }
 }
