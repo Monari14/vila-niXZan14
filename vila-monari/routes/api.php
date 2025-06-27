@@ -32,7 +32,7 @@ Route::prefix('/v1')->group(function () {
 
         # comentarios
         Route::get('/comments', [CommentController::class, 'index']);
-        Route::post('/comments/{id}', [CommentController::class, 'store']);
+        Route::post('/comments/{id}/posts', [CommentController::class, 'store']);
         Route::get('/comments/{id}', [CommentController::class, 'show']);
         Route::put('/comments/{id}', [CommentController::class, 'update']);
         Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
