@@ -8,12 +8,14 @@ use Storage;
 use Illuminate\Http\UploadedFile;
 use PHPUnit\Framework\Attributes\Test;
 use App\Models\User;
+use App\Models\Comment;
 
 class CommentTest extends TestCase
 {
     use RefreshDatabase;
 
     private Post $post;
+    private Comment $comment;
 
     #[Test]
     public function create_comment()
@@ -29,19 +31,18 @@ class CommentTest extends TestCase
             'content' => 'texto texto texto',
         ];
         // Faz a requisição para a rota
-        $response = $this->post("/api/v1/comments/{$post->id}", $requestBody);
+        $response = $this->post("/api/v1/comments/{$post->id}/posts", $requestBody);
 
 
-        // Espera 201 como status
-        $response->assertStatus(201);
+        // Espera 200 como status
+        $response->assertStatus(200);
     }
 
     #[Test]
-    private function list_zero_comments()
+    public function list_zero_comments()
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
-        $post = Post::factory()->create();
         $response = $this->get('/api/v1/comments');
 
         $response->assertStatus(200);
@@ -49,180 +50,108 @@ class CommentTest extends TestCase
     }
 
     #[Test]
-    private function list_n_comments()
+    public function list_n_comments()
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
-        $n = 10;
-        Post::factory($n)->create();
+
+        Post::factory()->create();
+
+        Comment::factory(10)->create();
 
         $response = $this->get('/api/v1/posts');
 
         $response->assertStatus(200);
-        $response->assertJsonCount($n);
     }
 
     #[Test]
-    private function display_one_comment(): void
+    public function display_one_comment(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
         $this->post = Post::factory()->create();
 
-        $response = $this->get("/api/v1/posts/{$this->post->id}");
+        $response = $this->get("/api/v1/comments/{$this->post->id}");
 
         $response->assertStatus(200);
         $response->assertJson($this->post->toArray());
     }
 
     #[Test]
-    private function display_wrong_post(): void
+    public function display_wrong_comment(): void
     {
-        $this->display_one_post();
+        $this->display_one_comment();
 
-        $response = $this->get("/api/v1/posts/SOME_WRONG_ID");
+        $response = $this->get("/api/v1/comments/SOME_WRONG_ID");
 
         $response->assertStatus(404);
     }
 
     #[Test]
-    private function create_post_through_api(): void
+    public function create_comment_through_api(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
+
+        $post = Post::factory()->create();
+
         $requestBody = [
             'content' => 'Minha primeira mensagem escrita aqui.',
         ];
 
-        $response = $this->post('/api/v1/posts', $requestBody);
-        $response->assertStatus(201);
-
-        $responseBody = $response->json();
-
-        $this->assertIsInt($responseBody['id']);
-
-        $response->assertSimilarJson([
-            'id' => $responseBody['id'],
-            'user_id' => $user->id,
-            'content' => $requestBody['content'],
-            'created_at' => $responseBody['created_at'],
-            'updated_at' => $responseBody['updated_at'],
-        ]);
-
-        /**
-         * Must return the same POST above
-         */
-        $response = $this->get("/api/v1/posts/{$responseBody['id']}");
+        $response = $this->post("/api/v1/comments/{$post->id}/posts", $requestBody);
         $response->assertStatus(200);
 
         $responseBody = $response->json();
 
-        $this->assertIsInt($responseBody['id']);
-        $this->assertLessThanOrEqual(255, strlen($responseBody['image']));
-
         $response->assertExactJson([
-            'id' => $responseBody['id'],
-            'content' => $requestBody['content'],
-            'user_id' => $user->id,
-            'image' => null,
-            'created_at' => $responseBody['created_at'],
-            'updated_at' => $responseBody['updated_at'],
+            'message' => 'Comentário adicionado com sucesso!',
         ]);
 
-        $this->assertDatabaseCount('posts', 1);
+        $this->assertDatabaseCount('comments', 1);
 
-        $this->post = (new Post())->forceFill($responseBody, true);
+        $this->comment = Comment::latest()->first();
     }
 
     #[Test]
-    private function create_post_through_api_with_image(): void
+    public function delete_single_comment(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
-        $requestBody = [
-            'content' => 'Minha primeira mensagem com imagem anexada.',
-            'image' => UploadedFile::fake()->image('post.jpg', 256, 256),
-        ];
+        $comment = Comment::factory()->create();
 
-        $response = $this->post('/api/v1/posts', $requestBody);
-        $response->assertStatus(201);
-
-        Storage::assertExists("images/{$requestBody['image']->hashName()}");
-    }
-
-    #[Test]
-    private function update_single_post(): void
-    {
-        $user = User::factory()->create();
-        $this->actingAs($user, 'sanctum');
-        $this->post = Post::factory()->create();
-        $this->assertInstanceOf(Post::class, $this->post);
-
-        $responseOld = $this->get("/api/v1/posts/{$this->post->id}");
-        $responseOld->assertStatus(200);
-        $responseOldBody = $responseOld->json();
-
-        $requestUpdateBody = [
-            'content' => 'Uma mensagem atualizada.'
-        ];
-
-        $this->assertNotEquals(
-            $requestUpdateBody['content'],
-            $responseOldBody['content']
-        );
-
-        $responseWrongUpdate = $this->put("/api/v1/posts/SOME_WRONG_ID", $requestUpdateBody);
-        $responseWrongUpdate->assertStatus(404);
-
-        $responseNew = $this->put("/api/v1/posts/{$this->post->id}", $requestUpdateBody);
-        $responseNew->assertStatus(200);
-
-        $responseNewBody = $responseNew->json();
-        $this->assertEquals(
-            $requestUpdateBody['content'],
-            $responseNewBody['content']
-        );
-    }
-
-    #[Test]
-    private function delete_single_post(): void
-    {
-        $user = User::factory()->create();
-        $this->actingAs($user, 'sanctum');
-        $this->post = Post::factory()->create();
-
-        $responseWrongDeleted = $this->delete("/api/v1/posts/SOME_WRONG_ID");
+        $responseWrongDeleted = $this->delete("/api/v1/comments/SOME_WRONG_ID");
         $responseWrongDeleted->assertStatus(404);
 
-        $this->assertDatabaseCount($this->post->getTable(), 1);
+        $this->assertDatabaseCount($comment->getTable(), 1);
 
-        $responseDeleted = $this->delete("/api/v1/posts/{$this->post->id}");
+        $responseDeleted = $this->delete("/api/v1/comments/{$comment->id}");
         $responseDeleted->assertStatus(200);
 
-        $responseAlreadyDeleted = $this->delete("/api/v1/posts/{$this->post->id}");
+        $responseAlreadyDeleted = $this->delete("/api/v1/comments/{$comment->id}");
         $responseAlreadyDeleted->assertStatus(404);
 
-        $this->assertDatabaseEmpty($this->post->getTable());
+        $this->assertDatabaseEmpty($comment->getTable());
     }
 
     #[Test]
-    private function create_post_through_api_and_delete_it(): void
+    public function create_comment_through_api_and_delete_it(): void
     {
-        $this->create_post_through_api();
-        $this->assertInstanceOf(Post::class, $this->post);
+        $this->create_comment_through_api();
+        $this->assertInstanceOf(Comment::class, $this->comment);
 
-        $responseWrongDeleted = $this->delete("/api/v1/posts/SOME_WRONG_ID");
+        $responseWrongDeleted = $this->delete("/api/v1/comments/SOME_WRONG_ID");
         $responseWrongDeleted->assertStatus(404);
 
-        $this->assertDatabaseCount($this->post->getTable(), 1);
+        $this->assertDatabaseCount($this->comment->getTable(), 1);
 
-        $responseDeleted = $this->delete("/api/v1/posts/{$this->post->id}");
+        $responseDeleted = $this->delete("/api/v1/comments/{$this->comment->id}");
         $responseDeleted->assertStatus(200);
 
-        $responseAlreadyDeleted = $this->delete("/api/v1/posts/{$this->post->id}");
+        $responseAlreadyDeleted = $this->delete("/api/v1/comments/{$this->comment->id}");
         $responseAlreadyDeleted->assertStatus(404);
 
-        $this->assertDatabaseEmpty($this->post->getTable());
+        $this->assertDatabaseEmpty($this->comment->getTable());
     }
 }

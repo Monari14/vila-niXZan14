@@ -30,7 +30,12 @@ class UserController extends Controller
 
             $user = User::create($validated);
 
-            return response()->json($user, 201);
+            return response()->json([
+                $user,
+                'status' => true,
+                'message' => 'Usuário criado com sucesso.',
+                'access_token' => $user->createToken("LOGIN TOKEN")->plainTextToken,
+            ], 201);
         } catch (\Throwable $e) {
             return response()->json([
                 'message' => 'Erro ao criar usuário.',
