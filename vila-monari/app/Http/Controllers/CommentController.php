@@ -58,5 +58,8 @@ class CommentController extends Controller
     {
         $comment = Comment::findOrFail($id);
         $comment->delete();
+        return response()->json([
+            'message' => 'Comentário removido com sucesso!'
+        ]);
     }
 }
