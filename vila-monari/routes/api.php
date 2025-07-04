@@ -7,6 +7,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\VotateController;
 
 Route::prefix('/v1')->group(function () {
     # Rota de login
@@ -36,7 +37,15 @@ Route::prefix('/v1')->group(function () {
         Route::get('/comments/{id}', [CommentController::class, 'show']);
         //Route::put('/comments/{id}', [CommentController::class, 'update']);
         Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
         # votação (up ou down vote) em um comentário ou post
+        # like e dislike
+
+        Route::post('/posts/{id}/like', [VotateController::class, 'likePost']);
+        Route::post('/posts/{id}/dislike', [VotateController::class, 'dislikePost']);
+
+        Route::post('/comments/{id}/like', [VotateController::class, 'likeComment']);
+        Route::post('/comments/{id}/dislike', [VotateController::class, 'dislikeComment']);
 
         # Rotas de sessões do usuário
         Route::get('/user/sessions', [SessionController::class, 'list']);

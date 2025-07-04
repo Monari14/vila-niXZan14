@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\LikeComment;
 use App\Models\Post;
 use Illuminate\Http\Request;
 
@@ -11,10 +12,27 @@ class CommentController extends Controller
     /**
      * Display a listing of the resource.
      */
+
     public function index()
     {
-        //desc: Maior pro Menor | asc: Menor pro Maior
-        return Comment::orderBy('id', 'desc')->get();
+        // Ordena os posts do mais recente para o mais antigo
+        $comments = Comment::orderBy('id', 'desc')->get();
+
+        // Pega os likes agrupados por post_id
+        $likes = LikeComment::whereIn('comment_id', $comments->pluck('id'))
+            ->selectRaw('comment_id, count(*) as nLikes')
+            ->groupBy('comment_id')
+            ->get()
+            ->keyBy('comment_id');
+
+        $postagens = $comments->map(function ($post) use ($likes) {
+            return [
+                'post' => $post,
+                'nLikes' => $likes[$post->id]->nLikes ?? 0,
+            ];
+        });
+
+        return response()->json($postagens);
     }
 
     /**

@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Attribute;
-use Illuminate\Container\Attributes\Storage;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,6 +22,11 @@ class Post extends Model
         'image',
         'user_id',
     ];
+
+    public function likes()
+    {
+        return $this->hasMany(LikePost::class);
+    }
 
     protected function image(): Attribute
     {

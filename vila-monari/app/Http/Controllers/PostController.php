@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LikePost;
 use App\Models\Post;
 use Auth;
 use Illuminate\Http\Request;
@@ -13,8 +14,25 @@ class PostController extends Controller
      */
     public function index()
     {
-        //desc: Maior pro Menor | asc: Menor pro Maior
-        return Post::orderBy('id', 'desc')->get();
+        // Ordena os posts do mais recente para o mais antigo
+        $posts = Post::orderBy('id', 'desc')->get();
+
+        // Pega os likes agrupados por post_id
+        $likes = LikePost::whereIn('post_id', $posts->pluck('id'))
+            ->selectRaw('post_id, count(*) as nLikes')
+            ->groupBy('post_id')
+            ->get()
+            ->keyBy('post_id');
+
+        // Junta os dados em uma única estrutura
+        $postagens = $posts->map(function ($post) use ($likes) {
+            return [
+                'post' => $post,
+                'nLikes' => $likes[$post->id]->nLikes ?? 0,
+            ];
+        });
+
+        return response()->json($postagens);
     }
 
     /**
