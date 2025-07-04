@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
-use App\Models\LikeComment;
+use App\Models\Like;
 use App\Models\Post;
 use Illuminate\Http\Request;
 
@@ -19,7 +19,7 @@ class CommentController extends Controller
         $comments = Comment::orderBy('id', 'desc')->get();
 
         // Pega os likes agrupados por post_id
-        $likes = LikeComment::whereIn('comment_id', $comments->pluck('id'))
+        $likes = Like::whereIn('comment_id', $comments->pluck('id'))
             ->selectRaw('comment_id, count(*) as nLikes')
             ->groupBy('comment_id')
             ->get()
@@ -27,7 +27,7 @@ class CommentController extends Controller
 
         $postagens = $comments->map(function ($post) use ($likes) {
             return [
-                'post' => $post,
+                'comment' => $post,
                 'nLikes' => $likes[$post->id]->nLikes ?? 0,
             ];
         });
@@ -66,7 +66,17 @@ class CommentController extends Controller
      */
     public function show(string $id)
     {
-        return Post::findOrFail($id);
+        // Busca um único post
+        $comment = Comment::findOrFail($id);
+
+        // Conta os likes desse post
+        $nLikes = Like::where('comment_id', $comment->id)->count();
+
+        // Retorna os dados em estrutura JSON
+        return response()->json([
+            'comment' => $comment,
+            'nLikes' => $nLikes,
+        ]);
     }
 
     /**

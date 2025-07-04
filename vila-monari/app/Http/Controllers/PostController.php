@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LikePost;
+use App\Models\Like;
 use App\Models\Post;
 use Auth;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class PostController extends Controller
         $posts = Post::orderBy('id', 'desc')->get();
 
         // Pega os likes agrupados por post_id
-        $likes = LikePost::whereIn('post_id', $posts->pluck('id'))
+        $likes = Like::whereIn('post_id', $posts->pluck('id'))
             ->selectRaw('post_id, count(*) as nLikes')
             ->groupBy('post_id')
             ->get()
@@ -64,7 +64,17 @@ class PostController extends Controller
      */
     public function show(string $id)
     {
-        return Post::findOrFail($id);
+        // Busca um único post
+        $post = Post::findOrFail($id);
+
+        // Conta os likes desse post
+        $nLikes = Like::where('post_id', $post->id)->count();
+
+        // Retorna os dados em estrutura JSON
+        return response()->json([
+            'post' => $post,
+            'nLikes' => $nLikes,
+        ]);
     }
 
     /**
