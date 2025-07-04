@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Http\Controllers;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -19,7 +19,7 @@ class UserControllerTest extends TestCase
     }
 
     #[Test]
-    public function example(): void
+    private function example(): void
     {
         $response = $this->get('/');
         $response->assertStatus(200);

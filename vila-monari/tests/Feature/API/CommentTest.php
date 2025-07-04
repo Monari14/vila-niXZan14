@@ -36,6 +36,8 @@ class CommentTest extends TestCase
 
         // Espera 200 como status
         $response->assertStatus(200);
+
+        $this->comment = Comment::latest()->first();
     }
 
     #[Test]
@@ -67,15 +69,21 @@ class CommentTest extends TestCase
     #[Test]
     public function display_one_comment(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user, 'sanctum');
-
-        $this->post = Post::factory()->create();
-
-        $response = $this->get("/api/v1/comments/{$this->post->id}");
+        $this->create_comment();
+        $response = $this->get("/api/v1/comments/{$this->comment->id}");
 
         $response->assertStatus(200);
-        $response->assertJson($this->post->toArray());
+        $response->assertExactJsonStructure([
+            "comment" => [
+                "id",
+                "user_id",
+                "post_id",
+                "content",
+                "created_at",
+                "updated_at"
+            ],
+            "nLikes",
+        ]);
     }
 
     #[Test]
@@ -106,12 +114,20 @@ class CommentTest extends TestCase
         $responseBody = $response->json();
 
         $response->assertExactJson([
+            'comment' => [
+                'user_id' => $user->id,
+                'post_id' => $post->id,
+                'content' => $requestBody['content'],
+                'updated_at' => $responseBody['comment']['updated_at'],
+                'created_at' => $responseBody['comment']['created_at'],
+                'id' => $responseBody['comment']['id'],
+            ],
             'message' => 'Comentário adicionado com sucesso!',
         ]);
 
         $this->assertDatabaseCount('comments', 1);
 
-        $this->comment = Comment::latest()->first();
+        $this->comment = Comment::findOrFail($responseBody['comment']['id']);
     }
 
     #[Test]
@@ -153,5 +169,25 @@ class CommentTest extends TestCase
         $responseAlreadyDeleted->assertStatus(404);
 
         $this->assertDatabaseEmpty($this->comment->getTable());
+    }
+
+    #[Test]
+    public function like_comment(): void
+    {
+        $this->create_comment_through_api();
+        $this->assertInstanceOf(Comment::class, $this->comment);
+
+        $response = $this->post("/api/v1/comments/{$this->comment->id}/like");
+        $response->assertStatus(200);
+
+        $this->comment = Comment::findOrFail($this->comment->id);
+    }
+    #[Test]
+    public function dislike_comment(): void
+    {
+        $this->like_comment();
+        $this->assertInstanceOf(Comment::class, $this->comment);
+        $response = $this->post("/api/v1/comments/{$this->comment->id}/dislike");
+        $response->assertStatus(200);
     }
 }

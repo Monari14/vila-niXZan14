@@ -57,6 +57,7 @@ class CommentController extends Controller
         ]);
 
         return response()->json([
+            'comment' => $comment,
             'message' => 'Comentário adicionado com sucesso!'
         ]);
     }

@@ -74,7 +74,17 @@ class PostTest extends TestCase
         $response = $this->get("/api/v1/posts/{$this->post->id}");
 
         $response->assertStatus(200);
-        $response->assertJson($this->post->toArray());
+        $response->assertExactJsonStructure([
+            "post" => [
+                "id",
+                "user_id",
+                "content",
+                "image",
+                "created_at",
+                "updated_at"
+            ],
+            "nLikes",
+        ]);
     }
 
     #[Test]
@@ -104,11 +114,11 @@ class PostTest extends TestCase
         $this->assertIsInt($responseBody['id']);
 
         $response->assertSimilarJson([
-            'id' => $responseBody['id'],
-            'user_id' => $user->id,
             'content' => $requestBody['content'],
-            'created_at' => $responseBody['created_at'],
+            'user_id' => $user->id,
             'updated_at' => $responseBody['updated_at'],
+            'created_at' => $responseBody['created_at'],
+            'id' => $responseBody['id'],
         ]);
 
         /**
@@ -119,21 +129,24 @@ class PostTest extends TestCase
 
         $responseBody = $response->json();
 
-        $this->assertIsInt($responseBody['id']);
-        $this->assertLessThanOrEqual(255, strlen($responseBody['image']));
+        $this->assertIsInt($responseBody['post']['id']);
+        $this->assertLessThanOrEqual(255, strlen($responseBody['post']['image']));
 
         $response->assertExactJson([
-            'id' => $responseBody['id'],
-            'content' => $requestBody['content'],
-            'user_id' => $user->id,
-            'image' => null,
-            'created_at' => $responseBody['created_at'],
-            'updated_at' => $responseBody['updated_at'],
+            'post' => [
+                'id' => $responseBody['post']['id'],
+                'user_id' => $user->id,
+                'content' => $requestBody['content'],
+                'image' => $responseBody['post']['image'],
+                'created_at' => $responseBody['post']['created_at'],
+                'updated_at' => $responseBody['post']['updated_at'],
+            ],
+            'nLikes' => 0,
         ]);
 
         $this->assertDatabaseCount('posts', 1);
 
-        $this->post = (new Post())->forceFill($responseBody, true);
+        $this->post = Post::findOrFail($responseBody['post']['id']);
     }
 
     #[Test]
@@ -170,8 +183,9 @@ class PostTest extends TestCase
 
         $this->assertNotEquals(
             $requestUpdateBody['content'],
-            $responseOldBody['content']
+            $responseOldBody['post']['content']
         );
+
 
         $responseWrongUpdate = $this->put("/api/v1/posts/SOME_WRONG_ID", $requestUpdateBody);
         $responseWrongUpdate->assertStatus(404);
@@ -225,5 +239,25 @@ class PostTest extends TestCase
         $responseAlreadyDeleted->assertStatus(404);
 
         $this->assertDatabaseEmpty($this->post->getTable());
+    }
+
+    #[Test]
+    public function like_post(): void
+    {
+        $this->create_post_through_api();
+        $this->assertInstanceOf(Post::class, $this->post);
+
+        $response = $this->post("/api/v1/posts/{$this->post->id}/like");
+        $response->assertStatus(200);
+
+        $this->post = Post::findOrFail($this->post->id);
+    }
+    #[Test]
+    public function dislike_post(): void
+    {
+        $this->like_post();
+        $this->assertInstanceOf(Post::class, $this->post);
+        $response = $this->post("/api/v1/posts/{$this->post->id}/dislike");
+        $response->assertStatus(200);
     }
 }
