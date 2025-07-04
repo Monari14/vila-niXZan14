@@ -35,15 +35,13 @@ Route::prefix('/v1')->group(function () {
         Route::get('/comments', [CommentController::class, 'index']);
         Route::post('/comments/{id}/posts', [CommentController::class, 'store']);
         Route::get('/comments/{id}', [CommentController::class, 'show']);
-        //Route::put('/comments/{id}', [CommentController::class, 'update']);
         Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
 
-        # votação (up ou down vote) em um comentário ou post
-        # like e dislike
-
+        # like e dislike em Posts
         Route::post('/posts/{id}/like', [VotateController::class, 'likePost']);
         Route::post('/posts/{id}/dislike', [VotateController::class, 'dislikePost']);
 
+        # like e dislike em Comentários
         Route::post('/comments/{id}/like', [VotateController::class, 'likeComment']);
         Route::post('/comments/{id}/dislike', [VotateController::class, 'dislikeComment']);
 

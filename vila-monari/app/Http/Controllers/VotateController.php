@@ -15,7 +15,10 @@ class VotateController extends Controller
             return response()->json(['message' => 'Post não encontrado.'], 404);
         }
 
-        $alreadyLiked = $post->likes()->where('user_id', $request->user()->id)->exists();
+        $alreadyLiked = $post->likes()
+            ->where('user_id', $request->user()->id)
+            ->whereNull('comment_id') // Garante que não confunda com curtida em comentário
+            ->exists();
 
         if ($alreadyLiked) {
             return response()->json(['message' => 'Você já curtiu este post.'], 400);
@@ -23,6 +26,7 @@ class VotateController extends Controller
 
         $post->likes()->create([
             'user_id' => $request->user()->id,
+            'comment_id' => null,
         ]);
 
         return response()->json(['message' => 'Post curtido!']);
@@ -35,7 +39,10 @@ class VotateController extends Controller
             return response()->json(['message' => 'Post não encontrado.'], 404);
         }
 
-        $like = $post->likes()->where('user_id', $request->user()->id)->first();
+        $like = $post->likes()
+            ->where('user_id', $request->user()->id)
+            ->whereNull('comment_id')
+            ->first();
 
         if (!$like) {
             return response()->json(['message' => 'Você não curtiu este post.'], 400);
@@ -53,7 +60,10 @@ class VotateController extends Controller
             return response()->json(['message' => 'Comentário não encontrado.'], 404);
         }
 
-        $alreadyLiked = $comment->likes()->where('user_id', $request->user()->id)->exists();
+        $alreadyLiked = $comment->likes()
+            ->where('user_id', $request->user()->id)
+            ->whereNull('post_id') // Garante que é curtida de comentário
+            ->exists();
 
         if ($alreadyLiked) {
             return response()->json(['message' => 'Você já curtiu este comentário.'], 400);
@@ -61,6 +71,7 @@ class VotateController extends Controller
 
         $comment->likes()->create([
             'user_id' => $request->user()->id,
+            'post_id' => null, // explícito, embora o default de Eloquent seria null
         ]);
 
         return response()->json(['message' => 'Comentário curtido!']);
@@ -73,7 +84,10 @@ class VotateController extends Controller
             return response()->json(['message' => 'Comentário não encontrado.'], 404);
         }
 
-        $like = $comment->likes()->where('user_id', $request->user()->id)->first();
+        $like = $comment->likes()
+            ->where('user_id', $request->user()->id)
+            ->whereNull('post_id')
+            ->first();
 
         if (!$like) {
             return response()->json(['message' => 'Você não curtiu este comentário.'], 400);
@@ -83,4 +97,5 @@ class VotateController extends Controller
 
         return response()->json(['message' => 'Curtida removida.']);
     }
+
 }

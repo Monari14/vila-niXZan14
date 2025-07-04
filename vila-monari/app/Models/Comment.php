@@ -23,6 +23,7 @@ class Comment extends Model
 
     public function likes()
     {
-        return $this->hasMany(LikeComment::class);
+        return $this->hasMany(Like::class);
     }
+
 }

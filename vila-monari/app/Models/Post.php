@@ -25,7 +25,7 @@ class Post extends Model
 
     public function likes()
     {
-        return $this->hasMany(LikePost::class);
+        return $this->hasMany(Like::class);
     }
 
     protected function image(): Attribute
