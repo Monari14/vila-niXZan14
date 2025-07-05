@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
 use Illuminate\Support\Facades\Route;
@@ -48,5 +49,9 @@ Route::prefix('/v1')->group(function () {
         # Rotas de sessões do usuário
         Route::get('/user/sessions', [SessionController::class, 'list']);
         Route::delete('/user/sessions/{id}', [SessionController::class, 'destroy']);
+
+        # follow e unfollow
+        Route::post('/user/{id}/follow', [FollowController::class, 'follow']);
+        Route::post('/user/{id}/unfollow', [FollowController::class, 'unfollow']);
     });
 });
