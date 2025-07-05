@@ -22,9 +22,9 @@ Route::prefix('/v1')->group(function () {
 
         # Rotas do usuário
         Route::get('/users', [UserController::class, 'index']);
-        Route::get('/user', [UserController::class, 'show']);
-        Route::put('/user/{id}', [UserController::class, 'update']);
-        Route::delete('/user/{id}', [UserController::class, 'destroy']);
+        Route::get('/user/{id}', [UserController::class, 'show']);
+        Route::put('/user', [UserController::class, 'update']);
+        Route::delete('/user', [UserController::class, 'destroy']);
 
         Route::get('/posts', [PostController::class, 'index']);
         Route::post('/posts', [PostController::class, 'store']);

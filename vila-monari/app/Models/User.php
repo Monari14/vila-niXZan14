@@ -20,6 +20,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
     ];
@@ -47,9 +48,59 @@ class User extends Authenticatable
         ];
     }
 
+    // Usuários que eu sigo
+    public function seguindo()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'followed_id');
+    }
+
+    // Usuários que me seguem
+    public function seguidores()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'followed_id', 'follower_id');
+    }
+
     # Método de juntar o user com os posts
     public function posts()
     {
         return $this->hasMany(Post::class);
+    }
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function likesInOthersPosts()
+    {
+        return $this->hasMany(Like::class, 'user_id')->whereNull('comment_id');
+    }
+
+    public function likesInOthersComments()
+    {
+        return $this->hasMany(Like::class, 'user_id')->whereNull('post_id');
+    }
+
+
+    public function likesInMyPosts()
+    {
+        return $this->hasManyThrough(
+            Like::class,
+            Post::class,
+            'user_id',   // FK na tabela posts que aponta para o usuário dono do post
+            'post_id',   // FK na tabela likes que aponta para o post que recebeu o like
+            'id',        // PK do usuário
+            'id'         // PK do post
+        );
+    }
+    public function likesInMyComments()
+    {
+        return $this->hasManyThrough(
+            Like::class,
+            Comment::class,
+            'user_id',   // FK na tabela comments que aponta para o usuário dono do comentário
+            'comment_id', // FK na tabela likes que aponta para o comentário que recebeu o like
+            'id',        // PK do usuário
+            'id'         // PK do comentário
+        );
     }
 }
