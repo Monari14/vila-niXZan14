@@ -22,7 +22,7 @@ Route::prefix('/v1')->group(function () {
 
         # Rotas do usuário
         Route::get('/users', [UserController::class, 'index']);
-        Route::get('/user/{id}', [UserController::class, 'show']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
         Route::put('/user', [UserController::class, 'update']);
         Route::delete('/user', [UserController::class, 'destroy']);
 

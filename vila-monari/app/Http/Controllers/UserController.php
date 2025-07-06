@@ -46,7 +46,8 @@ class UserController extends Controller
         $postagens = $users->map(function ($user) use ($likesPorUsuario) {
             return [
                 'id' => $user->id,
-                "@" . $user->username => [
+                "username" => $user->username,
+                "dados" => [
                     'follows' => [
                         'seguidores' => $user->seguidores()->count(),
                         'seguindo' => $user->seguindo()->count(),
