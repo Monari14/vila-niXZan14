@@ -16,11 +16,14 @@ Route::prefix('/v1')->group(function () {
     # Rota de registro
     Route::post('/register', [UserController::class, 'store']);
 
+    Route::get('/{username}', [UserController::class, 'profile']);
+
     Route::middleware('auth:sanctum')->group(function () {
         # Rota de logout
         Route::post('/logout', LogoutController::class);
 
         # Rotas do usuário
+
         Route::get('/users', [UserController::class, 'index']);
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::put('/user', [UserController::class, 'update']);

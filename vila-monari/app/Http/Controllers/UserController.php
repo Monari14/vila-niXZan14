@@ -10,6 +10,55 @@ use App\Models\Post;
 
 class UserController extends Controller
 {
+    public function profile($username)
+    {
+        // Busca o usuário pelo username
+
+        $user = User::where('username', $username)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Usuário não encontrado.'], 404);
+        }
+
+        // Coleta os posts desse usuário
+        $posts = Post::where('user_id', $user->id)->get();
+
+        // Coleta os likes agrupados por post_id
+        $likes = Like::whereIn('post_id', $posts->pluck('id'))
+            ->selectRaw('post_id, count(*) as nLikes')
+            ->groupBy('post_id')
+            ->get()
+            ->keyBy('post_id');
+
+        // Soma os likes recebidos nos posts do usuário
+        $nLikesPosts = 0;
+
+        foreach ($posts as $post) {
+            $nLikesPosts += $likes[$post->id]->nLikes ?? 0;
+        }
+
+        // Monta a estrutura de resposta
+        $dadosUsuario = [
+            'id' => $user->id,
+            "username" => $user->username,
+            "dados" => [
+                'follows' => [
+                    'seguidores' => $user->seguidores()->count(),
+                    'seguindo' => $user->seguindo()->count(),
+                ],
+                'posts' => [
+                    'posts' => $user->posts()->count(),
+                    'likes' => $user->likesInMyPosts()->count(),
+                ],
+                'comments' => [
+                    'comments' => $user->comments()->count(),
+                    'likes' => $user->likesInMyComments()->count(),
+                ],
+            ],
+        ];
+
+        return response()->json($dadosUsuario);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -126,7 +175,8 @@ class UserController extends Controller
         // Monta a estrutura de resposta
         $dadosUsuario = [
             'id' => $user->id,
-            "@" . $user->username => [
+            "username" => $user->username,
+            "dados" => [
                 'follows' => [
                     'seguidores' => $user->seguidores()->count(),
                     'seguindo' => $user->seguindo()->count(),
