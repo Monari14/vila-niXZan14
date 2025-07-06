@@ -94,7 +94,8 @@ class UserTest extends TestCase
         $response->assertStatus(200);
         $response->assertExactJsonStructure([
             "id",
-            "@" . $user->username => [
+            'username',
+            'dados' => [
                 "follows" => [
                     "seguidores",
                     "seguindo"
