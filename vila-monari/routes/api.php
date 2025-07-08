@@ -22,8 +22,7 @@ Route::prefix('/v1')->group(function () {
         # Rota de logout
         Route::post('/logout', LogoutController::class);
 
-        # Rotas do usuário
-
+        # users
         Route::get('/u/users', [UserController::class, 'index']);
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::put('/user', [UserController::class, 'update']);
