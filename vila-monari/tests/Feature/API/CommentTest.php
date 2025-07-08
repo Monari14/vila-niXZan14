@@ -45,7 +45,7 @@ class CommentTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
-        $response = $this->get('/api/v1/comments');
+        $response = $this->get('/api/v1/c/comments');
 
         $response->assertStatus(200);
         $response->assertExactJson([]);
@@ -61,7 +61,7 @@ class CommentTest extends TestCase
 
         Comment::factory(10)->create();
 
-        $response = $this->get('/api/v1/posts');
+        $response = $this->get('/api/v1/c/comments');
 
         $response->assertStatus(200);
     }
@@ -91,7 +91,7 @@ class CommentTest extends TestCase
     {
         $this->display_one_comment();
 
-        $response = $this->get("/api/v1/comments/SOME_WRONG_ID");
+        $response = $this->get("/api/v1/c/comments/SOME_WRONG_ID");
 
         $response->assertStatus(404);
     }

@@ -24,20 +24,20 @@ Route::prefix('/v1')->group(function () {
 
         # Rotas do usuário
 
-        Route::get('/users', [UserController::class, 'index']);
+        Route::get('/u/users', [UserController::class, 'index']);
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::put('/user', [UserController::class, 'update']);
         Route::delete('/user', [UserController::class, 'destroy']);
 
         # posts
-        Route::get('/posts', [PostController::class, 'index']);
+        Route::get('/p/posts', [PostController::class, 'index']);
         Route::post('/posts', [PostController::class, 'store']);
         Route::get('/posts/{id}', [PostController::class, 'show']);
         Route::put('/posts/{id}', [PostController::class, 'update']);
         Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
         # comentarios
-        Route::get('/comments', [CommentController::class, 'index']);
+        Route::get('/c/comments', [CommentController::class, 'index']);
         Route::post('/comments/{id}/posts', [CommentController::class, 'store']);
         Route::get('/comments/{id}', [CommentController::class, 'show']);
         Route::delete('/comments/{id}', [CommentController::class, 'destroy']);

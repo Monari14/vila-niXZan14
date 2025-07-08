@@ -43,7 +43,7 @@ class PostTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
-        $response = $this->get('/api/v1/posts');
+        $response = $this->get('/api/v1/p/posts');
 
         $response->assertStatus(200);
         $response->assertExactJson([]);
@@ -57,7 +57,7 @@ class PostTest extends TestCase
         $n = 10;
         Post::factory($n)->create();
 
-        $response = $this->get('/api/v1/posts');
+        $response = $this->get('/api/v1/p/posts');
 
         $response->assertStatus(200);
         $response->assertJsonCount($n);

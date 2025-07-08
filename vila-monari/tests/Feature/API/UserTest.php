@@ -16,7 +16,7 @@ class UserTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $response = $this->get('/api/v1/users');
+        $response = $this->get('/api/v1/u/users');
         $response->assertStatus(200);
     }
 
@@ -59,7 +59,7 @@ class UserTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $response = $this->get("/api/v1/users");
+        $response = $this->get("/api/v1/u/users");
         $response->assertStatus(200);
 
         $response->assertJsonStructure([
@@ -175,7 +175,7 @@ class UserTest extends TestCase
             'password' => 'felipe',
         ]);
         $userRequestBody = [
-            'email' => 'felipeemonari@gmail.com',
+            'login' => 'felipeemonari@gmail.com', //username ou email
             'password' => 'felipe',
         ];
 
