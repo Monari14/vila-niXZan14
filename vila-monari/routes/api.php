@@ -11,6 +11,9 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\VotateController;
 
 Route::prefix('/v1')->group(function () {
+    Route::get('/api', function () {
+        return response()->json(['message' => '14']);
+    });
     # Rota de login
     Route::post('/login', LoginController::class);
     # Rota de registro
